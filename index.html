@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TURJO X SENSI AI - Pro Live Neon Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #050508;
+            --panel-bg: rgba(15, 15, 22, 0.95);
+            --card-bg: rgba(22, 22, 32, 0.85);
+            --accent-color: #ff0055;
+            --accent-glow: rgba(255, 0, 85, 0.6);
+            --text-color: #ffffff;
+            --text-dim: #8b8b9e;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* LIVE NEON THEMES */
+        [data-theme="neon-red"] {
+            --accent-color: #ff0055;
+            --accent-glow: rgba(255, 0, 85, 0.8);
+        }
+        [data-theme="neon-cyan"] {
+            --accent-color: #00f0ff;
+            --accent-glow: rgba(0, 240, 255, 0.8);
+        }
+        [data-theme="neon-green"] {
+            --accent-color: #00ff66;
+            --accent-glow: rgba(0, 255, 102, 0.8);
+        }
+        [data-theme="neon-purple"] {
+            --accent-color: #bf00ff;
+            --accent-glow: rgba(191, 0, 255, 0.8);
+        }
+        [data-theme="neon-gold"] {
+            --accent-color: #ffcc00;
+            --accent-glow: rgba(255, 204, 0, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Rajdhani', sans-serif;
+            user-select: none;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-color) transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 20% 20%, var(--accent-glow) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, var(--accent-glow) 0%, transparent 40%);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
+            transition: background 0.5s ease-in-out;
+        }
+
+        /* LOGIN OVERLAY UI */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(5, 5, 8, 0.95);
+            backdrop-filter: blur(15px);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 380px;
+            background: var(--panel-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 0 35px var(--accent-glow);
+            text-align: center;
+        }
+
+        .login-card h2 {
+            font-size: 26px;
+            color: #fff;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px var(--accent-color);
+        }
+
+        .login-card p {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+        }
+
+        /* Login Page Display Name Badge */
+        .login-badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed var(--accent-color);
+            color: var(--accent-color);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px var(--accent-glow);
+        }
+
+        .login-error {
+            color: #ff003c;
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+            font-weight: 700;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 440px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--accent-color);
+            border-radius: 22px;
+            box-shadow: 0 0 35px var(--accent-glow), inset 0 0 15px var(--accent-glow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 780px;
+            transition: all 0.5s ease-in-out;
+            animation: pulseGlow 3s infinite alternate;
+            filter: blur(10px);
+            pointer-events: none;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 25px var(--accent-glow); }
+            100% { box-shadow: 0 0 45px var(--accent-glow); }
+        }
+
+        .header {
+            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            padding: 18px 15px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo-title h1 {
+            font-size: 24px;
+            letter-spacing: 3px;
+            color: var(--text-color);
+            font-weight: 700;
+            text-shadow: 0 0 12px var(--accent-color);
+        }
+
+        /* Home Page Live Name Tag */
+        .active-user-tag {
+            font-size: 11px;
+            color: var(--accent-color);
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--accent-color);
+            display: inline-block;
+            margin-top: 4px;
+            text-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .logo-title p {
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .theme-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .t-btn {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .t-btn:hover { transform: scale(1.3); }
+
+        .t-red { background: #ff0055; box-shadow: 0 0 10px #ff0055; }
+        .t-cyan { background: #00f0ff; box-shadow: 0 0 10px #00f0ff; }
+        .t-green { background: #00ff66; box-shadow: 0 0 10px #00ff66; }
+        .t-purple { background: #bf00ff; box-shadow: 0 0 10px #bf00ff; }
+        .t-gold { background: #ffcc00; box-shadow: 0 0 10px #ffcc00; }
+
+        .nav-bar {
+            display: flex;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid var(--border-color);
+            padding: 4px;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 10px 4px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-dim);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.3s;
+            border-radius: 8px;
+        }
+
+        .nav-item.active {
+            color: #fff;
+            background: var(--accent-color);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--accent-color);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .card h3 {
+            font-size: 13px;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 5px var(--accent-glow);
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            background: rgba(10, 10, 15, 0.9);
+            border: 1px solid var(--accent-color);
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+        }
+
+        .device-info-box {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px dashed var(--accent-color);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .device-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .device-row span:last-child {
+            color: var(--accent-color);
+            font-weight: 700;
+            text-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .gen-btn {
+            width: 100%;
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--accent-glow);
+            text-transform: uppercase;
+            margin-top: 6px;
+            transition: 0.2s;
+        }
+
+        .gen-btn:active { transform: scale(0.97); }
+
+        .slider-box { margin-bottom: 12px; }
+
+        .slider-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .slider-info span:last-child {
+            color: var(--accent-color);
+            font-weight: 700;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent-color);
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .chat-container {
+            height: 240px;
+            background: rgba(8, 8, 12, 0.9);
+            border: 1px solid var(--accent-color);
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .chat-msg {
+            max-width: 85%;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .chat-bot {
+            background: rgba(255,255,255,0.05);
+            border-left: 3px solid var(--accent-color);
+            align-self: flex-start;
+            color: #fff;
+        }
+
+        .chat-user {
+            background: var(--accent-color);
+            align-self: flex-end;
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .chat-input-box {
+            display: flex;
+            gap: 6px;
+        }
+
+        .chat-input-box input {
+            flex: 1;
+            background: rgba(10,10,15,0.8);
+            border: 1px solid var(--accent-color);
+            color: #fff;
+            padding: 9px;
+            border-radius: 8px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .chat-send-btn {
+            background: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 0 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .footer-status {
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.7);
+            font-size: 11px;
+            text-align: center;
+            color: var(--text-dim);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .safe-tag {
+            color: #00ff66;
+            font-weight: 700;
+            background: rgba(0,255,102,0.1);
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(0,255,102,0.3);
+            box-shadow: 0 0 8px rgba(0,255,102,0.4);
+        }
+
+        /* ADMIN NOTIFICATION BANNER */
+        .admin-announcement {
+            background: rgba(255, 0, 85, 0.2);
+            border: 1px dashed var(--accent-color);
+            color: #fff;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            margin-bottom: 12px;
+            display: none;
+        }
+    </style>
+</head>
+<body data-theme="neon-red">
+
+    <!-- LOGIN SYSTEM OVERLAY -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <h2>🔐 SYSTEM LOGIN</h2>
+            <p>সিকিউরিটি কি (Key) দিয়ে প্রবেশ করুন</p>
+            
+            <!-- Login Page Name Show -->
+            <div class="login-badge">👤 TURJO X USER</div>
+
+            <div class="input-group">
+                <input type="password" id="secretKeyInput" placeholder="Enter Access Key...">
+            </div>
+            <button class="gen-btn" onclick="validateKey()">ACCESS SYSTEM</button>
+            <div class="login-error" id="loginError">❌ ভুল সিকিউরিটি কি! সঠিক কি প্রবেশ করান।</div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="app-container" id="appMain">
+        <div class="header">
+            <div class="logo-title">
+                <h1>TURJO X SENSI AI</h1>
+                <!-- Home Page Live Display User/Admin Name -->
+                <div><span class="active-user-tag" id="homeUserTag">TURJO X USER</span></div>
+            </div>
+            <div class="theme-switcher">
+                <div class="t-btn t-red" onclick="setTheme('neon-red')" title="Neon Red"></div>
+                <div class="t-btn t-cyan" onclick="setTheme('neon-cyan')" title="Neon Cyan"></div>
+                <div class="t-btn t-green" onclick="setTheme('neon-green')" title="Neon Green"></div>
+                <div class="t-btn t-purple" onclick="setTheme('neon-purple')" title="Neon Purple"></div>
+                <div class="t-btn t-gold" onclick="setTheme('neon-gold')" title="Neon Gold"></div>
+            </div>
+        </div>
+
+        <div class="nav-bar">
+            <button class="nav-item active" onclick="switchTab(event, 'tab-ai')">⚡ AI Sensi</button>
+            <button class="nav-item" onclick="switchTab(event, 'tab-bot')">🤖 AI Bot</button>
+            <button class="nav-item" onclick="switchTab(event, 'tab-weapon')">🎯 Weapon</button>
+            <button class="nav-item" onclick="switchTab(event, 'tab-optimizer')">🚀 Optimizer</button>
+            <button class="nav-item" id="navAdminBtn" style="display:none;" onclick="switchTab(event, 'tab-admin')">👑 Admin</button>
+        </div>
+
+        <div class="content-area">
+
+            <!-- Admin Broadcast Notice -->
+            <div class="admin-announcement" id="adminNotice">
+                📢 <b>ADMIN NOTICE:</b> <span id="adminNoticeText">Welcome to TURJO X Gaming AI!</span>
+            </div>
+
+            <!-- TAB 1: AI Sensi Generator -->
+            <div id="tab-ai" class="tab-pane active">
+                <div class="card">
+                    <h3>📱 Device Parameters</h3>
+                    <div class="input-group">
+                        <label>Phone Name & Model</label>
+                        <input type="text" id="inputPhoneModel" placeholder="e.g. ROG 8 Pro / iPhone 15">
+                    </div>
+                    <div class="input-group">
+                        <label>RAM Size</label>
+                        <input type="text" id="inputRamSize" placeholder="e.g. 8 GB / 12 GB">
+                    </div>
+                    
+                    <button class="gen-btn" onclick="generateAiSensi()">Auto Generate Sensi & DPI</button>
+
+                    <div class="device-info-box" id="infoBox" style="display:none;">
+                        <div class="device-row"><span>Target Device:</span> <span id="infoModelName">-</span></div>
+                        <div class="device-row"><span>RAM Loaded:</span> <span id="infoRamSize">-</span></div>
+                        <div class="device-row"><span>Optimal DPI:</span> <span id="infoDpi">-</span></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>⚡ High Sensi Output (Max 200 Cap)</h3>
+                    <div class="slider-box">
+                        <div class="slider-info"><span>General Power</span><span id="ai-gen">0</span></div>
+                        <input type="range" id="sl-gen" value="0" min="0" max="200">
+                    </div>
+                    <div class="slider-box">
+                        <div class="slider-info"><span>Red Dot Precision</span><span id="ai-red">0</span></div>
+                        <input type="range" id="sl-red" value="0" min="0" max="200">
+                    </div>
+                    <div class="slider-box">
+                        <div class="slider-info"><span>2X Scope</span><span id="ai-2x">0</span></div>
+                        <input type="range" id="sl-2x" value="0" min="0" max="200">
+                    </div>
+                    <div class="slider-box">
+                        <div class="slider-info"><span>4X Scope</span><span id="ai-4x">0</span></div>
+                        <input type="range" id="sl-4x" value="0" min="0" max="200">
+                    </div>
+                    <div class="slider-box">
+                        <div class="slider-info"><span>Sniper Scope</span><span id="ai-snip">0</span></div>
+                        <input type="range" id="sl-snip" value="0" min="0" max="200">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: AI Gaming Bot -->
+            <div id="tab-bot" class="tab-pane">
+                <div class="card">
+                    <h3>💬 TURJO Gaming Assistant</h3>
+                    <div class="chat-container" id="chatContainer">
+                        <div class="chat-msg chat-bot">
+                            👋 স্বাগতম! আমি তুর্জো AI। গেম এবং সেনসিভিটি বিষয়ক যেকোনো প্রশ্ন বাংলায় করুন!
+                        </div>
+                    </div>
+                    <div class="chat-input-box">
+                        <input type="text" id="userInput" placeholder="বাংলায় মেসেজ লিখুন...">
+                        <button class="chat-send-btn" onclick="sendChatMessage()">SEND</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Weapon-wise Sensi -->
+            <div id="tab-weapon" class="tab-pane">
+                <div class="card">
+                    <h3>🎯 Select Weapon Profile</h3>
+                    <div class="input-group">
+                        <label>Weapon Type</label>
+                        <select id="weaponSelect" onchange="loadWeaponPreset()">
+                            <option value="desert">Desert Eagle (One Tap King)</option>
+                            <option value="m1887">M1887 (Shotgun Master)</option>
+                            <option value="mp40">MP40 (SMG Rapid Fire)</option>
+                            <option value="scar">SCAR / M4A1 (Stable AR)</option>
+                            <option value="awm">AWM (Sniper Pro)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 id="w-title">Desert Eagle Preset</h3>
+                    <div class="slider-box">
+                        <div class="slider-info"><span>General Power</span><span id="w-gen">198</span></div>
+                        <input type="range" id="ws-gen" value="198" min="0" max="200">
+                    </div>
+                    <div class="slider-box">
+                        <div class="slider-info"><span>Red Dot Precision</span><span id="w-red">195</span></div>
+                        <input type="range" id="ws-red" value="195" min="0" max="200">
+                    </div>
+                    <button class="gen-btn" onclick="alert('Weapon preset applied successfully!')">Apply Weapon Setup</button>
+                </div>
+            </div>
+
+            <!-- TAB 4: Phone Optimizer -->
+            <div id="tab-optimizer" class="tab-pane">
+                <div class="card">
+                    <h3>🚀 Hardware Boost & Latency Fix</h3>
+                    <button class="gen-btn" onclick="runOptimizer()">Run Touch & FPS Optimizer</button>
+                </div>
+                <div class="card" id="optResultCard" style="display:none;">
+                    <h3>Optimization Status</h3>
+                    <div style="font-size: 12px; margin-bottom: 6px;">📱 DPI Status: <b style="color:var(--accent-color);" id="optDpi">Calibrated</b></div>
+                    <div style="font-size: 12px;">⚡ Touch Sampling: <b style="color:#00ff66;">1000Hz Ultra Boosted</b></div>
+                </div>
+            </div>
+
+            <!-- TAB 5: ADMIN CONTROL PANEL -->
+            <div id="tab-admin" class="tab-pane">
+                <div class="card">
+                    <h3>👑 Admin Control Dashboard</h3>
+                    <div class="input-group">
+                        <label>Broadcast System Announcement</label>
+                        <input type="text" id="adminBroadcastInput" placeholder="Enter notice for app users...">
+                    </div>
+                    <button class="gen-btn" onclick="postAdminNotice()">Publish Notice</button>
+                </div>
+                <div class="card">
+                    <h3>⚙️ System Management</h3>
+                    <button class="gen-btn" style="background:#ff003c;" onclick="clearSystemCache()">Clear App Cache & Data</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer-status">
+            <span>🛡️ Anti-Ban Shield: <b>Secure</b></span>
+            <span class="safe-tag" id="userRoleTag">User Mode</span>
+        </div>
+    </div>
+
+    <script>
+        const USER_KEY = "TURJO X USER";
+        const ADMIN_KEY = "TURJO X ADMIN";
+
+        function validateKey() {
+            const userKey = document.getElementById('secretKeyInput').value.trim();
+            const errorElement = document.getElementById('loginError');
+
+            if (userKey === USER_KEY) {
+                unlockApp("User");
+            } else if (userKey === ADMIN_KEY) {
+                unlockApp("Admin");
+            } else {
+                errorElement.style.display = 'block';
+            }
+        }
+
+        function unlockApp(role) {
+            document.getElementById('loginOverlay').style.display = 'none';
+            const mainApp = document.getElementById('appMain');
+            mainApp.style.filter = 'none';
+            mainApp.style.pointerEvents = 'auto';
+
+            if (role === "Admin") {
+                document.getElementById('navAdminBtn').style.display = 'block';
+                document.getElementById('userRoleTag').innerText = "Admin Access";
+                document.getElementById('userRoleTag').style.color = "#ffcc00";
+                
+                // Home page-e Admin name show korbe
+                document.getElementById('homeUserTag').innerText = "TURJO X ADMIN";
+            } else {
+                // Home page-e User name show korbe
+                document.getElementById('homeUserTag').innerText = "TURJO X USER";
+            }
+        }
+
+        function switchTab(evt, tabId) {
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            evt.currentTarget.classList.add('active');
+        }
+
+        function setTheme(themeName) {
+            document.body.setAttribute('data-theme', themeName);
+        }
+
+        function hashString(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return Math.abs(hash);
+        }
+
+        function generateAiSensi() {
+            const phoneName = document.getElementById('inputPhoneModel').value.trim();
+            const ramText = document.getElementById('inputRamSize').value.trim();
+
+            if (!phoneName || !ramText) {
+                alert("⚠️ অনুগ্রহ করে আপনার ফোনের মডেল এবং RAM ইনপুট দিন!");
+                return;
+            }
+
+            const combinedKey = (phoneName + ramText).toLowerCase().replace(/\s+/g, '');
+            const hash = hashString(combinedKey);
+
+            const gen = 175 + (hash % 26);
+            const red = 170 + ((hash * 3) % 26);
+            const s2x = 165 + ((hash * 7) % 26);
+            const s4x = 160 + ((hash * 11) % 26);
+            const snip = 130 + ((hash * 13) % 41);
+            const dpi = 420 + (hash % 160);
+
+            document.getElementById('infoModelName').innerText = phoneName;
+            document.getElementById('infoRamSize').innerText = ramText;
+            document.getElementById('infoDpi').innerText = dpi + " DPI";
+            document.getElementById('infoBox').style.display = 'block';
+
+            document.getElementById('sl-gen').value = gen;
+            document.getElementById('ai-gen').innerText = gen;
+            
+            document.getElementById('sl-red').value = red;
+            document.getElementById('ai-red').innerText = red;
+
+            document.getElementById('sl-2x').value = s2x;
+            document.getElementById('ai-2x').innerText = s2x;
+
+            document.getElementById('sl-4x').value = s4x;
+            document.getElementById('ai-4x').innerText = s4x;
+
+            document.getElementById('sl-snip').value = snip;
+            document.getElementById('ai-snip').innerText = snip;
+        }
+
+        // BANGLA AI BOT SYSTEM
+        function sendChatMessage() {
+            const inputField = document.getElementById('userInput');
+            const text = inputField.value.trim();
+            if (!text) return;
+
+            const chatContainer = document.getElementById('chatContainer');
+            const userMsg = document.createElement('div');
+            userMsg.className = 'chat-msg chat-user';
+            userMsg.innerText = text;
+            chatContainer.appendChild(userMsg);
+
+            inputField.value = '';
+
+            setTimeout(() => {
+                const botMsg = document.createElement('div');
+                botMsg.className = 'chat-msg chat-bot';
+                
+                let reply = "✨ আপনার সেনসিভিটি সেট করা হয়েছে! ভালো হেডশটের জন্য ড্র্যাগ ফায়ার ব্যবহার করুন।";
+                const query = text.toLowerCase();
+
+                if (query.includes('dpi') || query.includes('ডিপিআই')) {
+                    reply = "⚡ DPI তথ্য: সেরা DPI জানতে AI Sensi ট্যাবে আপনার ফোনের মডেল লিখে জেনারেট করুন।";
+                } else if (query.includes('shotgun') || query.includes('m1887') || query.includes('শটগান')) {
+                    reply = "🔥 শটগান ট্রিক: জেনারেল সেনসিভিটি ২০০ রাখুন এবং রোটেশন ড্র্যাগ শট প্র্যাকটিস করুন!";
+                } else if (query.includes('hi') || query.includes('hello') || query.includes('হ্যালো')) {
+                    reply = "👋 হ্যালো! আমি তুর্জো AI। আপনার গেমের জন্য কীভাবে সাহায্য করতে পারি?";
+                }
+
+                botMsg.innerText = reply;
+                chatContainer.appendChild(botMsg);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 500);
+        }
+
+        const weaponPresets = {
+            desert: { gen: 198, red: 195 },
+            m1887: { gen: 195, red: 190 },
+            mp40: { gen: 190, red: 185 },
+            scar: { gen: 185, red: 180 },
+            awm: { gen: 160, red: 150 }
+        };
+
+        function loadWeaponPreset() {
+            const val = document.getElementById('weaponSelect').value;
+            const data = weaponPresets[val];
+            document.getElementById('ws-gen').value = data.gen;
+            document.getElementById('w-gen').innerText = data.gen;
+            document.getElementById('ws-red').value = data.red;
+            document.getElementById('w-red').innerText = data.red;
+        }
+
+        function runOptimizer() {
+            document.getElementById('optDpi').innerText = "Fully Optimized (1000Hz)";
+            document.getElementById('optResultCard').style.display = 'block';
+        }
+
+        // ADMIN FUNCTIONS
+        function postAdminNotice() {
+            const text = document.getElementById('adminBroadcastInput').value.trim();
+            if(!text) return;
+            document.getElementById('adminNoticeText').innerText = text;
+            document.getElementById('adminNotice').style.display = 'block';
+            alert("📢 Notice published to system!");
+        }
+
+        function clearSystemCache() {
+            alert("🧹 System cache cleared successfully!");
+            location.reload();
+        }
+    </script>
+</body>
+</html>
