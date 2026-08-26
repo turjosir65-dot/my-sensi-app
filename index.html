@@ -62,7 +62,6 @@
             transition: background 0.5s ease-in-out;
         }
 
-        /* User Update Overlay Screen */
         .update-overlay {
             position: fixed;
             top: 0;
@@ -668,7 +667,25 @@
 
             <!-- TAB 5: ADMIN CONTROL PANEL -->
             <div id="tab-admin" class="tab-pane">
-                <!-- DYNAMIC TIME UPDATE CONTROL SYSTEM WITH AUTOMATIC PROTECTION -->
+                <!-- NEW: PASSWORD CONTROL SYSTEM -->
+                <div class="card" style="border-color: #ff0055;">
+                    <h3 style="color: #ff0055;">🔐 Security & Live Password Control</h3>
+                    <div class="input-group">
+                        <label>New User Password (ইউজার পাসওয়ার্ড)</label>
+                        <input type="text" id="newUserPassInput" placeholder="নতুন ইউজার পাসওয়ার্ড দিন...">
+                    </div>
+                    <button class="gen-btn" onclick="updateUserPassword()">Update & Lock Live Users</button>
+                    
+                    <hr style="border:0; border-top:1px dashed var(--border-color); margin:12px 0;">
+                    
+                    <div class="input-group">
+                        <label>New Admin Password (এডমিন পাসওয়ার্ড)</label>
+                        <input type="text" id="newAdminPassInput" placeholder="নতুন এডমিন পাসওয়ার্ড দিন...">
+                    </div>
+                    <button class="gen-btn" style="background:#00f0ff; color:#000;" onclick="updateAdminPassword()">Update Admin Password</button>
+                </div>
+
+                <!-- UPDATE CONTROL SYSTEM -->
                 <div class="card" style="border-color: #ffcc00;">
                     <h3 style="color: #ffcc00;">🔄 Custom App Update Control</h3>
                     <div class="input-group">
@@ -700,6 +717,7 @@
                     <button class="gen-btn" onclick="postAdminNotice()">Publish Live Notice</button>
                     <button class="gen-btn" style="background: #444; margin-top: 8px;" onclick="removeAdminNotice()">Remove Notice</button>
                 </div>
+
                 <div class="card">
                     <h3>⚙️ System Management</h3>
                     <button class="gen-btn" style="background:#ff003c;" onclick="clearSystemCache()">Clear App Cache & Data</button>
@@ -715,17 +733,97 @@
     </div>
 
     <script>
-        const USER_KEY = "TF";
-        const ADMIN_KEY = "TURJOXC";
+        // DEFAULT PASSWORDS
+        let DEFAULT_USER_KEY = "TF";
+        let DEFAULT_ADMIN_KEY = "TURJOXC";
         let currentRole = "User";
         let countdownTimerInterval = null;
+
+        function getUserKey() {
+            return localStorage.getItem('app_user_key') || DEFAULT_USER_KEY;
+        }
+
+        function getAdminKey() {
+            return localStorage.getItem('app_admin_key') || DEFAULT_ADMIN_KEY;
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             checkSavedNotice();
             checkAppUpdateStatus();
         });
 
-        // SAFE & RELIABLE UPDATE CONTROL SYSTEM
+        // LIVE PASSWORD UPDATE FUNCTIONS
+        function updateUserPassword() {
+            const newPass = document.getElementById('newUserPassInput').value.trim();
+            if (!newPass) {
+                alert("⚠️ একটি পাসওয়ার্ড লিখুন!");
+                return;
+            }
+            localStorage.setItem('app_user_key', newPass);
+            // Change session lock token to force user lockouts instantly across tabs
+            localStorage.setItem('sys_pass_changed_flag', Date.now().toString());
+            alert("✅ ইউজার পাসওয়ার্ড পরিবর্তন করা হয়েছে! এখন লাইভ ইউজারদের অ্যাপ রি-লগইন করতে হবে।");
+            document.getElementById('newUserPassInput').value = '';
+        }
+
+        function updateAdminPassword() {
+            const newPass = document.getElementById('newAdminPassInput').value.trim();
+            if (!newPass) {
+                alert("⚠️ একটি পাসওয়ার্ড লিখুন!");
+                return;
+            }
+            localStorage.setItem('app_admin_key', newPass);
+            alert("✅ এডমিন পাসওয়ার্ড পরিবর্তন করা হয়েছে!");
+            document.getElementById('newAdminPassInput').value = '';
+        }
+
+        function lockUserScreen() {
+            const loginOverlay = document.getElementById('loginOverlay');
+            loginOverlay.style.display = 'flex';
+            const mainApp = document.getElementById('appMain');
+            mainApp.style.filter = 'blur(10px)';
+            mainApp.style.pointerEvents = 'none';
+            document.getElementById('secretKeyInput').value = '';
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        function validateKey() {
+            const inputKey = document.getElementById('secretKeyInput').value.trim();
+            const errorElement = document.getElementById('loginError');
+
+            if (inputKey === getUserKey()) {
+                unlockApp("User");
+            } else if (inputKey === getAdminKey()) {
+                unlockApp("Admin");
+            } else {
+                errorElement.style.display = 'block';
+            }
+        }
+
+        function unlockApp(role) {
+            currentRole = role;
+            document.getElementById('loginOverlay').style.display = 'none';
+            const mainApp = document.getElementById('appMain');
+            mainApp.style.filter = 'none';
+            mainApp.style.pointerEvents = 'auto';
+
+            if (role === "Admin") {
+                document.getElementById('navAdminBtn').style.display = 'block';
+                document.getElementById('userRoleTag').innerText = "Admin Access";
+                document.getElementById('userRoleTag').style.color = "#ffcc00";
+                
+                document.getElementById('panelTitle').innerText = "TURJO X ADMIN PANEL";
+                document.getElementById('homeUserTag').innerText = "TURJO X ADMIN";
+            } else {
+                document.getElementById('panelTitle').innerText = "TURJO X USER PANEL";
+                document.getElementById('homeUserTag').innerText = "TURJO X USER";
+                document.getElementById('navAdminBtn').style.display = 'none';
+            }
+
+            checkAppUpdateStatus();
+        }
+
+        // UPDATE CONTROL SYSTEM
         function enableCustomUpdate() {
             const msg = document.getElementById('updateMsgInput').value.trim();
             const duration = parseInt(document.getElementById('updateDurationInput').value.trim(), 10);
@@ -777,7 +875,6 @@
                 const updateData = JSON.parse(updateStr);
                 const now = Date.now();
 
-                // Robust check to avoid NaN issues
                 if (!updateData.active || !updateData.expireAt || isNaN(updateData.expireAt) || updateData.expireAt <= now) {
                     localStorage.removeItem('sys_update_config');
                     overlay.style.display = 'none';
@@ -822,42 +919,6 @@
 
             updateTimer();
             countdownTimerInterval = setInterval(updateTimer, 1000);
-        }
-
-        function validateKey() {
-            const userKey = document.getElementById('secretKeyInput').value.trim();
-            const errorElement = document.getElementById('loginError');
-
-            if (userKey === USER_KEY) {
-                unlockApp("User");
-            } else if (userKey === ADMIN_KEY) {
-                unlockApp("Admin");
-            } else {
-                errorElement.style.display = 'block';
-            }
-        }
-
-        function unlockApp(role) {
-            currentRole = role;
-            document.getElementById('loginOverlay').style.display = 'none';
-            const mainApp = document.getElementById('appMain');
-            mainApp.style.filter = 'none';
-            mainApp.style.pointerEvents = 'auto';
-
-            if (role === "Admin") {
-                document.getElementById('navAdminBtn').style.display = 'block';
-                document.getElementById('userRoleTag').innerText = "Admin Access";
-                document.getElementById('userRoleTag').style.color = "#ffcc00";
-                
-                document.getElementById('panelTitle').innerText = "TURJO X ADMIN PANEL";
-                document.getElementById('homeUserTag').innerText = "TURJO X ADMIN";
-            } else {
-                document.getElementById('panelTitle').innerText = "TURJO X USER PANEL";
-                document.getElementById('homeUserTag').innerText = "TURJO X USER";
-                document.getElementById('navAdminBtn').style.display = 'none';
-            }
-
-            checkAppUpdateStatus();
         }
 
         function switchTab(evt, tabId) {
@@ -1017,7 +1078,7 @@
             }
         }
 
-        // Real-time Event Listener for instant update sync
+        // Real-time Event Listener for instant update & Password Lock sync across sessions
         window.addEventListener('storage', (event) => {
             if (event.key === 'live_app_notice') {
                 if (event.newValue) {
@@ -1028,6 +1089,9 @@
             }
             if (event.key === 'sys_update_config') {
                 checkAppUpdateStatus();
+            }
+            if (event.key === 'sys_pass_changed_flag' && currentRole === "User") {
+                lockUserScreen();
             }
         });
 
