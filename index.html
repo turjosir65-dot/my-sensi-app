@@ -62,6 +62,59 @@
             transition: background 0.5s ease-in-out;
         }
 
+        /* User Update Overlay Screen */
+        .update-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(5, 5, 8, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 999999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .update-card {
+            width: 100%;
+            max-width: 380px;
+            background: var(--panel-bg);
+            border: 2px solid #ffcc00;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 40px rgba(255, 204, 0, 0.5);
+            text-align: center;
+        }
+
+        .update-card h2 {
+            font-size: 24px;
+            color: #ffcc00;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px #ffcc00;
+        }
+
+        .update-card p {
+            font-size: 15px;
+            color: #ffffff;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+
+        .update-timer {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent-color);
+            background: rgba(0,0,0,0.6);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px dashed var(--accent-color);
+            display: inline-block;
+        }
+
         .login-overlay {
             position: fixed;
             top: 0;
@@ -450,6 +503,15 @@
 </head>
 <body data-theme="neon-red">
 
+    <!-- USER UPDATE BLOCK SCREEN -->
+    <div class="update-overlay" id="updateOverlay">
+        <div class="update-card">
+            <h2>⚠️ SYSTEM UPDATE</h2>
+            <p id="updateMessage">অ্যাপ্লিকেশনের আপডেটের কাজ চলছে। অনুগ্রহ করে কিছুটা সময় অপেক্ষা করুন!</p>
+            <div class="update-timer" id="updateTimerBox">🔒 Status: Maintenance Mode</div>
+        </div>
+    </div>
+
     <!-- LOGIN SYSTEM OVERLAY -->
     <div class="login-overlay" id="loginOverlay">
         <div class="login-card">
@@ -606,6 +668,30 @@
 
             <!-- TAB 5: ADMIN CONTROL PANEL -->
             <div id="tab-admin" class="tab-pane">
+                <!-- DYNAMIC TIME UPDATE CONTROL SYSTEM WITH AUTOMATIC PROTECTION -->
+                <div class="card" style="border-color: #ffcc00;">
+                    <h3 style="color: #ffcc00;">🔄 Custom App Update Control</h3>
+                    <div class="input-group">
+                        <label>Custom Update Message (বার্তা)</label>
+                        <input type="text" id="updateMsgInput" placeholder="যেমন: কাজ চলছে, কিছু সময় পর ট্রাই করুন...">
+                    </div>
+                    <div class="input-group" style="display: flex; gap: 8px;">
+                        <div style="flex: 2;">
+                            <label>Duration (কত সময়)</label>
+                            <input type="number" id="updateDurationInput" placeholder="e.g. 2, 5, 10" min="1">
+                        </div>
+                        <div style="flex: 1;">
+                            <label>Unit (একক)</label>
+                            <select id="updateUnitSelect">
+                                <option value="minutes">Minutes</option>
+                                <option value="hours">Hours</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="gen-btn" style="background:#ff9900; margin-bottom:8px;" onclick="enableCustomUpdate()">🔒 Enable Timer Auto Unlock Update</button>
+                    <button class="gen-btn" style="background:#00ff66; color:#000;" onclick="clearUpdateStatus()">✅ Remove Update Immediately</button>
+                </div>
+
                 <div class="card">
                     <h3>👑 Admin Notice Control</h3>
                     <div class="input-group" style="margin-top: 10px;">
@@ -631,10 +717,112 @@
     <script>
         const USER_KEY = "TF";
         const ADMIN_KEY = "TURJOXC";
+        let currentRole = "User";
+        let countdownTimerInterval = null;
 
         window.addEventListener('DOMContentLoaded', () => {
             checkSavedNotice();
+            checkAppUpdateStatus();
         });
+
+        // SAFE & RELIABLE UPDATE CONTROL SYSTEM
+        function enableCustomUpdate() {
+            const msg = document.getElementById('updateMsgInput').value.trim();
+            const duration = parseInt(document.getElementById('updateDurationInput').value.trim(), 10);
+            const unit = document.getElementById('updateUnitSelect').value;
+
+            if (!msg) {
+                alert("⚠️ অনুগ্রহ করে ইউজারদের দেখানোর জন্য একটি আপডেট বার্তা লিখুন!");
+                return;
+            }
+
+            if (isNaN(duration) || duration <= 0) {
+                alert("⚠️ অনুগ্রহ করে সঠিক সময় (সংখ্যায়) প্রদান করুন!");
+                return;
+            }
+
+            let durationMs = duration * 60 * 1000;
+            if (unit === 'hours') {
+                durationMs = duration * 60 * 60 * 1000;
+            }
+
+            const expireTime = Date.now() + durationMs;
+            const updateData = { active: true, message: msg, expireAt: expireTime };
+            localStorage.setItem('sys_update_config', JSON.stringify(updateData));
+            
+            alert(`✅ ${duration} ${unit} এর টাইমারসহ আপডেট স্ক্রিন সেট করা হয়েছে!`);
+            checkAppUpdateStatus();
+        }
+
+        function clearUpdateStatus() {
+            localStorage.removeItem('sys_update_config');
+            if (countdownTimerInterval) clearInterval(countdownTimerInterval);
+            alert("✅ অ্যাপ আপডেট তুলে নেওয়া হয়েছে! অ্যাপ আনলক করা হলো।");
+            checkAppUpdateStatus();
+        }
+
+        function checkAppUpdateStatus() {
+            const updateStr = localStorage.getItem('sys_update_config');
+            const overlay = document.getElementById('updateOverlay');
+            const msgBox = document.getElementById('updateMessage');
+
+            if (countdownTimerInterval) clearInterval(countdownTimerInterval);
+
+            if (!updateStr) {
+                overlay.style.display = 'none';
+                return;
+            }
+
+            try {
+                const updateData = JSON.parse(updateStr);
+                const now = Date.now();
+
+                // Robust check to avoid NaN issues
+                if (!updateData.active || !updateData.expireAt || isNaN(updateData.expireAt) || updateData.expireAt <= now) {
+                    localStorage.removeItem('sys_update_config');
+                    overlay.style.display = 'none';
+                    return;
+                }
+
+                msgBox.innerText = updateData.message || "Maintenance Mode";
+                overlay.style.display = 'flex';
+                startCountdown(updateData.expireAt);
+            } catch (e) {
+                localStorage.removeItem('sys_update_config');
+                overlay.style.display = 'none';
+            }
+        }
+
+        function startCountdown(expireAt) {
+            const timerBox = document.getElementById('updateTimerBox');
+            
+            function updateTimer() {
+                const now = Date.now();
+                const secondsLeft = Math.floor((expireAt - now) / 1000);
+
+                if (isNaN(secondsLeft) || secondsLeft <= 0) {
+                    clearInterval(countdownTimerInterval);
+                    localStorage.removeItem('sys_update_config');
+                    document.getElementById('updateOverlay').style.display = 'none';
+                } else {
+                    const hrs = Math.floor(secondsLeft / 3600);
+                    const mins = Math.floor((secondsLeft % 3600) / 60);
+                    const secs = secondsLeft % 60;
+
+                    let timeDisplay = "";
+                    if (hrs > 0) {
+                        timeDisplay = `${hrs}h ${mins < 10 ? '0' : ''}${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+                    } else {
+                        timeDisplay = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                    }
+
+                    timerBox.innerText = `⏳ Auto Open In: ${timeDisplay}`;
+                }
+            }
+
+            updateTimer();
+            countdownTimerInterval = setInterval(updateTimer, 1000);
+        }
 
         function validateKey() {
             const userKey = document.getElementById('secretKeyInput').value.trim();
@@ -650,6 +838,7 @@
         }
 
         function unlockApp(role) {
+            currentRole = role;
             document.getElementById('loginOverlay').style.display = 'none';
             const mainApp = document.getElementById('appMain');
             mainApp.style.filter = 'none';
@@ -667,6 +856,8 @@
                 document.getElementById('homeUserTag').innerText = "TURJO X USER";
                 document.getElementById('navAdminBtn').style.display = 'none';
             }
+
+            checkAppUpdateStatus();
         }
 
         function switchTab(evt, tabId) {
@@ -826,6 +1017,7 @@
             }
         }
 
+        // Real-time Event Listener for instant update sync
         window.addEventListener('storage', (event) => {
             if (event.key === 'live_app_notice') {
                 if (event.newValue) {
@@ -834,11 +1026,14 @@
                     hideNoticeOnScreen();
                 }
             }
+            if (event.key === 'sys_update_config') {
+                checkAppUpdateStatus();
+            }
         });
 
         function clearSystemCache() {
             localStorage.clear();
-            alert("🧹 System cache and notices cleared successfully!");
+            alert("🧹 System cache cleared successfully!");
             location.reload();
         }
     </script>
