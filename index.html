@@ -91,14 +91,8 @@
         .login-card h2 {
             font-size: 26px;
             color: #fff;
-            margin-bottom: 5px;
-            text-shadow: 0 0 10px var(--accent-color);
-        }
-
-        .login-card p {
-            font-size: 12px;
-            color: var(--text-dim);
             margin-bottom: 15px;
+            text-shadow: 0 0 10px var(--accent-color);
         }
 
         .login-badge {
@@ -107,7 +101,7 @@
             color: var(--accent-color);
             font-size: 12px;
             font-weight: 700;
-            padding: 6px;
+            padding: 8px;
             border-radius: 8px;
             margin-bottom: 15px;
             letter-spacing: 1px;
@@ -172,14 +166,6 @@
             display: inline-block;
             margin-top: 4px;
             text-shadow: 0 0 8px var(--accent-glow);
-        }
-
-        .logo-title p {
-            font-size: 10px;
-            color: var(--text-dim);
-            letter-spacing: 2px;
-            font-weight: 600;
-            margin-top: 2px;
         }
 
         .theme-switcher {
@@ -448,11 +434,17 @@
             background: rgba(255, 0, 85, 0.2);
             border: 1px dashed var(--accent-color);
             color: #fff;
-            padding: 8px;
+            padding: 10px;
             border-radius: 8px;
-            font-size: 11px;
-            margin-bottom: 12px;
+            font-size: 12px;
+            margin-bottom: 14px;
             display: none;
+            animation: pulseGlowNotice 2s infinite alternate;
+        }
+
+        @keyframes pulseGlowNotice {
+            0% { box-shadow: 0 0 8px var(--accent-glow); }
+            100% { box-shadow: 0 0 18px var(--accent-glow); }
         }
     </style>
 </head>
@@ -462,12 +454,11 @@
     <div class="login-overlay" id="loginOverlay">
         <div class="login-card">
             <h2>🔐 SYSTEM LOGIN</h2>
-            <p>সিকিউরিটি কি (Key) দিয়ে প্রবেশ করুন</p>
             
-            <div class="login-badge">👤 TURJO X USER</div>
+            <div class="login-badge">👤 TURJO X SYSTEM</div>
 
             <div class="input-group">
-                <input type="password" id="secretKeyInput" placeholder="Enter Access Key...">
+                <input type="password" id="secretKeyInput" placeholder="Enter Security Key...">
             </div>
             <button class="gen-btn" onclick="validateKey()">ACCESS SYSTEM</button>
             <div class="login-error" id="loginError">❌ ভুল সিকিউরিটি কি! সঠিক কি প্রবেশ করান।</div>
@@ -478,7 +469,7 @@
     <div class="app-container" id="appMain">
         <div class="header">
             <div class="logo-title">
-                <h1>TURJO X SENSI AI</h1>
+                <h1 id="panelTitle">TURJO X SENSI AI</h1>
                 <div><span class="active-user-tag" id="homeUserTag">TURJO X USER</span></div>
             </div>
             <div class="theme-switcher">
@@ -500,9 +491,9 @@
 
         <div class="content-area">
 
-            <!-- Admin Broadcast Notice -->
+            <!-- Real-time Admin Broadcast Notice Box -->
             <div class="admin-announcement" id="adminNotice">
-                📢 <b>ADMIN NOTICE:</b> <span id="adminNoticeText">Welcome to TURJO X Gaming AI!</span>
+                📢 <b>ANNOUNCEMENT:</b> <span id="adminNoticeText"></span>
             </div>
 
             <!-- TAB 1: AI Sensi Generator -->
@@ -576,6 +567,7 @@
                         <label>Weapon Type</label>
                         <select id="weaponSelect" onchange="loadWeaponPreset()">
                             <option value="desert">Desert Eagle (One Tap King)</option>
+                            <option value="ump">UMP (SMG Headshot King)</option>
                             <option value="m1887">M1887 (Shotgun Master)</option>
                             <option value="woodpecker">Woodpecker (Marksman Headshot)</option>
                             <option value="mp40">MP40 (SMG Rapid Fire)</option>
@@ -615,12 +607,12 @@
             <!-- TAB 5: ADMIN CONTROL PANEL -->
             <div id="tab-admin" class="tab-pane">
                 <div class="card">
-                    <h3>👑 Admin Control Dashboard</h3>
-                    <div class="input-group">
-                        <label>Broadcast System Announcement</label>
-                        <input type="text" id="adminBroadcastInput" placeholder="Enter notice for app users...">
+                    <h3>👑 Admin Notice Control</h3>
+                    <div class="input-group" style="margin-top: 10px;">
+                        <input type="text" id="adminBroadcastInput" placeholder="Write live notice for users...">
                     </div>
-                    <button class="gen-btn" onclick="postAdminNotice()">Publish Notice</button>
+                    <button class="gen-btn" onclick="postAdminNotice()">Publish Live Notice</button>
+                    <button class="gen-btn" style="background: #444; margin-top: 8px;" onclick="removeAdminNotice()">Remove Notice</button>
                 </div>
                 <div class="card">
                     <h3>⚙️ System Management</h3>
@@ -638,7 +630,11 @@
 
     <script>
         const USER_KEY = "TF";
-        const ADMIN_KEY = "TURJO X ADMIN";
+        const ADMIN_KEY = "TURJOXC";
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkSavedNotice();
+        });
 
         function validateKey() {
             const userKey = document.getElementById('secretKeyInput').value.trim();
@@ -664,9 +660,12 @@
                 document.getElementById('userRoleTag').innerText = "Admin Access";
                 document.getElementById('userRoleTag').style.color = "#ffcc00";
                 
+                document.getElementById('panelTitle').innerText = "TURJO X ADMIN PANEL";
                 document.getElementById('homeUserTag').innerText = "TURJO X ADMIN";
             } else {
+                document.getElementById('panelTitle').innerText = "TURJO X USER PANEL";
                 document.getElementById('homeUserTag').innerText = "TURJO X USER";
+                document.getElementById('navAdminBtn').style.display = 'none';
             }
         }
 
@@ -753,6 +752,8 @@
                     reply = "⚡ DPI তথ্য: সেরা DPI জানতে AI Sensi ট্যাবে আপনার ফোনের মডেল লিখে জেনারেট করুন।";
                 } else if (query.includes('shotgun') || query.includes('m1887') || query.includes('শটগান')) {
                     reply = "🔥 শটগান ট্রিক: জেনারেল সেনসিভিটি ২০০ রাখুন এবং রোটেশন ড্র্যাগ শট প্র্যাকটিস করুন!";
+                } else if (query.includes('ump')) {
+                    reply = "🎯 UMP ট্রিক: UMP-এর জন্য রেড ডট সেনসিভিটি ১৯২-১৯৭ এর মধ্যে রাখুন এবং হালকা সোজা ড্র্যাগ করুন!";
                 } else if (query.includes('hi') || query.includes('hello') || query.includes('হ্যালো')) {
                     reply = "👋 হ্যালো! আমি তুর্জো AI। আপনার গেমের জন্য কীভাবে সাহায্য করতে পারি?";
                 }
@@ -765,6 +766,7 @@
 
         const weaponPresets = {
             desert: { title: "Desert Eagle Preset", gen: 198, red: 195 },
+            ump: { title: "UMP Preset", gen: 192, red: 197 },
             m1887: { title: "M1887 Preset", gen: 195, red: 190 },
             woodpecker: { title: "Woodpecker Preset", gen: 196, red: 192 },
             mp40: { title: "MP40 Preset", gen: 190, red: 185 },
@@ -789,14 +791,54 @@
 
         function postAdminNotice() {
             const text = document.getElementById('adminBroadcastInput').value.trim();
-            if(!text) return;
-            document.getElementById('adminNoticeText').innerText = text;
-            document.getElementById('adminNotice').style.display = 'block';
-            alert("📢 Notice published to system!");
+            if (!text) {
+                alert("দয়া করে কিছু লিখুন!");
+                return;
+            }
+            localStorage.setItem('live_app_notice', text);
+            showNoticeOnScreen(text);
+            alert("📢 সফলভাবে নোটিশ লাইভ করা হয়েছে!");
+            document.getElementById('adminBroadcastInput').value = '';
         }
 
+        function removeAdminNotice() {
+            localStorage.removeItem('live_app_notice');
+            hideNoticeOnScreen();
+            alert("🗑️ নোটিশ সরিয়ে নেওয়া হয়েছে!");
+        }
+
+        function showNoticeOnScreen(text) {
+            const noticeBox = document.getElementById('adminNotice');
+            const noticeText = document.getElementById('adminNoticeText');
+            noticeText.innerText = text;
+            noticeBox.style.display = 'block';
+        }
+
+        function hideNoticeOnScreen() {
+            const noticeBox = document.getElementById('adminNotice');
+            noticeBox.style.display = 'none';
+        }
+
+        function checkSavedNotice() {
+            const savedNotice = localStorage.getItem('live_app_notice');
+            if (savedNotice) {
+                showNoticeOnScreen(savedNotice);
+            }
+        }
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'live_app_notice') {
+                if (event.newValue) {
+                    showNoticeOnScreen(event.newValue);
+                } else {
+                    hideNoticeOnScreen();
+                }
+            }
+        });
+
         function clearSystemCache() {
-            alert("🧹 System cache cleared successfully!");
+            localStorage.clear();
+            alert("🧹 System cache and notices cleared successfully!");
             location.reload();
         }
     </script>
