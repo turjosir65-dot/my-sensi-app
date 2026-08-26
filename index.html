@@ -577,6 +577,7 @@
                         <select id="weaponSelect" onchange="loadWeaponPreset()">
                             <option value="desert">Desert Eagle (One Tap King)</option>
                             <option value="m1887">M1887 (Shotgun Master)</option>
+                            <option value="woodpecker">Woodpecker (Marksman Headshot)</option>
                             <option value="mp40">MP40 (SMG Rapid Fire)</option>
                             <option value="scar">SCAR / M4A1 (Stable AR)</option>
                             <option value="awm">AWM (Sniper Pro)</option>
@@ -636,7 +637,6 @@
     </div>
 
     <script>
-        // Updated User Key to 'TF'
         const USER_KEY = "TF";
         const ADMIN_KEY = "TURJO X ADMIN";
 
@@ -764,16 +764,18 @@
         }
 
         const weaponPresets = {
-            desert: { gen: 198, red: 195 },
-            m1887: { gen: 195, red: 190 },
-            mp40: { gen: 190, red: 185 },
-            scar: { gen: 185, red: 180 },
-            awm: { gen: 160, red: 150 }
+            desert: { title: "Desert Eagle Preset", gen: 198, red: 195 },
+            m1887: { title: "M1887 Preset", gen: 195, red: 190 },
+            woodpecker: { title: "Woodpecker Preset", gen: 196, red: 192 },
+            mp40: { title: "MP40 Preset", gen: 190, red: 185 },
+            scar: { title: "SCAR / M4A1 Preset", gen: 185, red: 180 },
+            awm: { title: "AWM Preset", gen: 160, red: 150 }
         };
 
         function loadWeaponPreset() {
             const val = document.getElementById('weaponSelect').value;
             const data = weaponPresets[val];
+            document.getElementById('w-title').innerText = data.title;
             document.getElementById('ws-gen').value = data.gen;
             document.getElementById('w-gen').innerText = data.gen;
             document.getElementById('ws-red').value = data.red;
